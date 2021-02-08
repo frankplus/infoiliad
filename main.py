@@ -1,8 +1,10 @@
 import api
 import json
 
-ID_UTENTE = ""
+USER_ID = ""
 PASSWORD = ""
 
-info = api.get_info(ID_UTENTE, PASSWORD)
-print(json.dumps(info, indent=4))
+login_info = list()
+login_info.append([USER_ID, PASSWORD])
+
+api.totale_dati_giornalieri(login_info, print_log=True)

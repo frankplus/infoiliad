@@ -3,6 +3,7 @@ import re
 import requests
 from bs4 import BeautifulSoup
 import datetime
+import json
 
 PATTERNS = {
     'nome': r'<div class=\"bold\">(.*)</div>',
@@ -92,7 +93,33 @@ def parse_dati_to_gb(dati):
     if match:
         return float(match.group(1).replace(',', '.')) / 1024.0
 
-
-
 def parse_date(date_str):
     return datetime.datetime.strptime(date_str, '%d/%m/%Y')
+
+def totale_dati_giornalieri(login_info, print_log=False):
+    all_accounts = [get_info(user_id, pwd) for user_id, pwd in login_info]
+
+    if print_log:
+        print(json.dumps(all_accounts, indent=4))
+
+    totale_dati_giornalieri = 0
+
+    for account in all_accounts:
+        consumo = parse_dati_to_gb(account["consumi_italia"]["dati"])
+        totale = parse_dati_to_gb(account["consumi_italia"]["totale_dati"])
+        rimanenti = totale - consumo
+        data_rinnovo = parse_date(account["info"]["data_rinnovo"])
+        giorni_rimanenti = (data_rinnovo - datetime.datetime.now()).days + 1
+        dati_rimanenti_giornalieri = rimanenti / giorni_rimanenti
+        totale_dati_giornalieri += dati_rimanenti_giornalieri
+
+        if print_log:
+            print(account["info"]["numero"])
+            print("rimanenti: " + str(rimanenti))
+            print("giorni_rimanenti: " + str(giorni_rimanenti))
+            print()
+
+    if print_log:
+        print("totale_dati_giornalieri: " + str(totale_dati_giornalieri))
+        
+    return totale_dati_giornalieri
